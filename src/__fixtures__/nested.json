@@ -1,0 +1,27 @@
+{
+  "name": "sample",
+  "profiles": ["dev"],
+  "label": null,
+  "version": "e8bec7709f3b7ae4c1dc26dcf46c0edea1c6fc9f",
+  "propertySources": [
+    {
+      "name": "dev",
+      "source": {
+        "app.overridden": 2,
+        "app.mapdata.one": "one",
+        "app.mapdata.two": "two",
+        "app.list[0]": "0",
+        "app.list[2]": "2"
+      }
+    },
+    {
+      "name": "root",
+      "source": {
+        "app.name": "sample data",
+        "app.overridden": 1,
+        "app.list[0]": ".",
+        "app.mapdata.three": "three"
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "name": "fetch-cloud-config",
+  "description": "Load configurations from Spring Cloud Config server",
+  "keywords": [
+    "Spring Cloud Config",
+    "Spring Cloud",
+    "typescript"
+  ],
+  "version": "1.0.0",
+  "author": {
+    "email": "marius.kaasboll@gmail.com",
+    "name": "Marius Kaasbøll"
+  },
+  "packageManager": "yarn@3.2.1",
+  "module": "dist/fetch-cloud-config.es.js",
+  "main": "dist/fetch-cloud-config.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/fetch-cloud-config.es.js",
+      "require": "./dist/fetch-cloud-config.umd.js"
+    }
+  },
+  "type": "module",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "eslint --fix \"./src/**/*.{js,jsx,ts,tsx,json}\"",
+    "postinstall": "husky install",
+    "prepack": "pinst --disable",
+    "postpack": "pinst --enable",
+    "pre-commit-lint": "yarn lint-staged"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.3",
+    "url-join": "^4.0.1",
+    "vite": "^2.9.12"
+  },
+  "files": [
+    "/dist"
+  ],
+  "devDependencies": {
+    "@types/fetch-mock": "^7.3.5",
+    "@types/jest": "^28.1.1",
+    "@types/lodash-es": "^4.17.6",
+    "@types/node": "^17.0.42",
+    "@types/url-join": "^4.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.27.1",
+    "@typescript-eslint/parser": "latest",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.17.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^8.0.1",
+    "jest": "^28.1.1",
+    "jest-environment-jsdom": "^28.1.1",
+    "jest-fetch-mock": "^3.0.3",
+    "lint-staged": "^13.0.1",
+    "pinst": "^3.0.0",
+    "prettier": "^2.6.2",
+    "ts-jest": "^28.0.4",
+    "ts-node": "^10.8.1"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,json}": [
+      "yarn eslint --fix"
+    ],
+    "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "yarn prettier --write"
+    ]
+  }
+}

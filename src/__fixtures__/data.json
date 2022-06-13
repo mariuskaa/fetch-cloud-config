@@ -1,0 +1,21 @@
+{
+  "name": "sample",
+  "profiles": ["dev"],
+  "label": null,
+  "version": "e8bec7709f3b7ae4c1dc26dcf46c0edea1c6fc9f",
+  "propertySources": [
+    {
+      "name": "dev",
+      "source": {
+        "overridden": 2
+      }
+    },
+    {
+      "name": "root",
+      "source": {
+        "name": "sample data",
+        "overridden": 1
+      }
+    }
+  ]
+}
