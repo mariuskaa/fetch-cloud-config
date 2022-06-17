@@ -74,7 +74,6 @@ test('Construct flat object', async () => {
   const config: Configuration = {
     host: '',
     profiles: ['dev'],
-    flatten: true,
   };
   type Result = {
     app: {
@@ -85,7 +84,7 @@ test('Construct flat object', async () => {
     };
   };
   const result = await load<Result>(config);
-  expect(result.properties).toEqual({
+  expect(result.flat).toEqual({
     'app.name': 'sample data',
     'app.overridden': 2,
     'app.list[0]': '0',

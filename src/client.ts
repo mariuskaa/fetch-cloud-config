@@ -1,4 +1,4 @@
-import { set, mergeWith } from 'lodash-es';
+import { set } from 'lodash-es';
 import urlJoin from 'url-join';
 
 export interface Configuration {
@@ -7,7 +7,7 @@ export interface Configuration {
   profiles: string[];
   path?: string;
   label?: string;
-  flatten?: boolean;
+  environment?: Record<string, ValueType>;
 }
 
 export interface SpringCloudConfigResultRaw {
@@ -19,27 +19,7 @@ export interface SpringCloudConfigResultRaw {
 
 export interface SpringCloudPropertySource {
   name: string;
-  source: Record<string, string | number | boolean>;
-}
-
-function nestedParse<T>(raw: SpringCloudConfigResultRaw): T {
-  return raw.propertySources
-    .map(({ source }) => {
-      const partial = {};
-      Object.entries(source).forEach(([key, value]) =>
-        set(partial, key, value)
-      );
-      return partial;
-    })
-    .reduce(
-      (total, current) =>
-        mergeWith(total, current, (original) => {
-          if (original instanceof Array) return original;
-          else if (original instanceof Object) return undefined;
-          else return original;
-        }),
-      {}
-    ) as T;
+  source: Record<string, ValueType>;
 }
 
 function containsPrefix(obj: Record<string, never>, prefix?: string) {
@@ -47,7 +27,23 @@ function containsPrefix(obj: Record<string, never>, prefix?: string) {
   return Object.keys(obj).some((key) => key.startsWith(prefix));
 }
 
-function flatParse<T = Record<string, string | number | boolean>>(
+type ValueType = string | number | boolean | undefined;
+
+/**
+ * Transform an 'application.properties' style Record to a nested object
+ * { 'app.test': 'hey', 'app.data[0]': 123, 'app.nested.key': 'value' }
+ *    is transformed to
+ * { app: { test: 'hey', data: [123], nested: { key: 'value' }}}
+ */
+function nest<T>(p: Record<string, ValueType>): T {
+  let nested = {};
+  Object.entries(p).forEach(([key, value]) => {
+    nested = set(nested, key, value);
+  });
+  return nested as T;
+}
+
+function parse<T = Record<string, ValueType>>(
   raw: SpringCloudConfigResultRaw
 ): T {
   const expression = /^(?<prefix>.*?)\[(\d+)]/m;
@@ -66,20 +62,25 @@ function flatParse<T = Record<string, string | number | boolean>>(
     }, {}) as T;
 }
 
-export async function load<T>({
+export async function load<T = unknown>({
   host,
   name = 'application',
   profiles,
   path = '',
   label = '',
-  flatten = false,
-}: Configuration): Promise<{ raw: SpringCloudConfigResultRaw; properties: T }> {
+}: Configuration): Promise<{
+  raw: SpringCloudConfigResultRaw;
+  properties: T;
+  flat: Record<string, string | boolean | number | unknown>;
+}> {
   const url = urlJoin(host, path, name, profiles.join(','), label);
   const raw = (await fetch(url).then((r) =>
     r.json()
   )) as SpringCloudConfigResultRaw;
+  const parsed = parse(raw);
   return {
     raw,
-    properties: flatten ? flatParse(raw) : nestedParse<T>(raw),
+    flat: parsed,
+    properties: nest<T>(parsed),
   };
 }
