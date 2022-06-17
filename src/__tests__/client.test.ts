@@ -96,11 +96,17 @@ test('Construct flat object', async () => {
 });
 
 describe('placeholder resolver', () => {
-  fetchMock.mockResponse(JSON.stringify(placeholders));
   const config = { host: 'localhost', name: 'application', profiles: ['dev'] };
-  type Properties = { placeholder?: string; fallback: string };
+  type Properties = {
+    placeholder?: string;
+    fallback: string;
+    true: boolean;
+    false: boolean;
+    number: number;
+  };
 
   it('should insert environment variable', async () => {
+    fetchMock.mockResponse(JSON.stringify(placeholders));
     const properties = await load<Properties>({
       ...config,
       environment: { ENV_PLACEHOLDER: 'test' },
@@ -109,16 +115,29 @@ describe('placeholder resolver', () => {
   });
 
   it('should support missing variable fallback', async () => {
+    fetchMock.mockResponse(JSON.stringify(placeholders));
     const properties = await load<Properties>(config).then((r) => r.properties);
     expect(properties.fallback).toBe('fallback');
     expect(properties.placeholder).toBe(undefined);
   });
 
   it('should populate placeholders with fallback', async () => {
+    fetchMock.mockResponse(JSON.stringify(placeholders));
     const properties = await load<Properties>({
       ...config,
       environment: { ENV_FALLBACK: 'override' },
     }).then((r) => r.properties);
     expect(properties.fallback).toBe('override');
+  });
+
+  it('should resolve correct types', async () => {
+    fetchMock.mockResponse(JSON.stringify(placeholders));
+    const environment = { ENV_TRUE: true, ENV_FALSE: false, ENV_NUMBER: 1 };
+    const properties = await load<Properties>({ ...config, environment }).then(
+      (r) => r.properties
+    );
+    expect(properties.false).toEqual(false);
+    expect(properties.true).toEqual(true);
+    expect(properties.number).toEqual(environment.ENV_NUMBER);
   });
 });

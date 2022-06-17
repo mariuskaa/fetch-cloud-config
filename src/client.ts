@@ -43,6 +43,65 @@ function nest<T>(p: Record<string, ValueType>): T {
   return nested as T;
 }
 
+function resolveVariables(
+  properties: Record<string, ValueType>,
+  environment: Record<string, ValueType>
+): Record<string, ValueType> {
+  return Object.entries(properties)
+    .map(([key, value]) => {
+      if (typeof value === 'string')
+        return { key, value: expandTemplateText(value, environment) };
+      else return { key, value };
+    })
+    .reduce((merged, { key, value }) => ({ ...merged, [key]: value }), {});
+}
+
+/**
+ * Expand all string templates found in a string, using a provided environment to resolve variables
+ * ex: expandTemplateText('hello ${TEXT}', { TEXT: 'world'}) resolves to 'hello world'
+ *
+ * Also supports fallback values, in case the value is not found in the provided environment
+ * ex: expandTemplateText('hello ${TEXT:bob}', { }) resolves to 'hello bob'
+ */
+function expandTemplateText(
+  text: string,
+  environment: Record<string, ValueType>
+) {
+  const match = text.match(/(?<=\${)[\w:]+(?=})/g);
+  if (match) {
+    const updated = match.reduce(
+      (total, expression) =>
+        total.replace(
+          `\${${expression}}`,
+          expandTemplateExpression(expression, environment)
+        ),
+      text
+    );
+    return transformType(updated);
+  } else return text;
+}
+
+/**
+ * Transform string to number, boolean or undefined as applicable
+ */
+function transformType(text: string): ValueType {
+  if (text === '') return undefined;
+  else if (text === 'true') return true;
+  else if (text === 'false') return false;
+  else if (!isNaN(Number(text))) return Number(text);
+  else return text;
+}
+
+function expandTemplateExpression(
+  expression: string,
+  environment: Record<string, ValueType>
+): string {
+  const [variable, fallback] = expression.split(':');
+  if (variable in environment) return <string>environment[variable];
+  else if (fallback) return fallback;
+  else return '';
+}
+
 function parse<T = Record<string, ValueType>>(
   raw: SpringCloudConfigResultRaw
 ): T {
@@ -68,6 +127,7 @@ export async function load<T = unknown>({
   profiles,
   path = '',
   label = '',
+  environment = {},
 }: Configuration): Promise<{
   raw: SpringCloudConfigResultRaw;
   properties: T;
@@ -78,9 +138,10 @@ export async function load<T = unknown>({
     r.json()
   )) as SpringCloudConfigResultRaw;
   const parsed = parse(raw);
+  const expanded = resolveVariables({ ...parsed }, environment);
   return {
     raw,
-    flat: parsed,
-    properties: nest<T>(parsed),
+    flat: expanded,
+    properties: nest<T>(expanded),
   };
 }

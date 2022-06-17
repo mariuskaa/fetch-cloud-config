@@ -8,7 +8,10 @@
       "name": "root",
       "source": {
         "placeholder": "${ENV_PLACEHOLDER}",
-        "fallback": "${ENV_FALLBACK:fallback}"
+        "fallback": "${ENV_FALLBACK:fallback}",
+        "number": "${ENV_NUMBER}",
+        "false": "${ENV_FALSE}",
+        "true": "${ENV_TRUE}"
       }
     }
   ]

@@ -28,21 +28,24 @@ load({
 
 ## Examples
 `load` retrieves and merges property sources as specified in your configuration. 
-One can either use the default nested model, opt for a flattened model, or use raw data from the spring-cloud-config server.
+One can either use the default nested model, opt for a flattened model, or use raw data from the spring-cloud-config server. 
+Spring environment-variable placeholders can be resolved by adding an 'environment' configuration.
 
 ```yaml
 # application.yml
 app:
-  name: 'sample-app'
-  api-url: 'https://your.app/api'
+  name: sample-app
+  api-url: https://your.app/api
+  greeting: hello ${USER}
+
 data:
-  - 'one'
-  - 'two'
+  - one
+  - two
 ```
 ```yaml
 # application-staging.yml
 app:
-  api-url: 'https://staging.your.app/api'
+  api-url: https://staging.your.app/api
 ```
 
 ```typescript
@@ -51,7 +54,8 @@ import { load, Configuration } from 'fetch-cloud-config';
 const configuration: Configuration = {
     host: 'https://config.server', 
     name: 'application', 
-    profiles: ['staging']
+    profiles: ['staging'],
+    environment: { USER: 'bob' }
 };
 
 type AppConfig = { app: { name: string, 'api-url': string, data: string[]}}
@@ -62,7 +66,8 @@ console.log(properties)
 //   app: {
 //     name: 'sample-app',
 //     api-url: 'https://staging.your.app/api'
-//     data: ['one', 'two']
+//     data: ['one', 'two'],
+//     greeting: 'hello bob'
 //   }
 // }
 console.log(flat)
@@ -71,6 +76,7 @@ console.log(flat)
 //   app.api-url: 'https://staging.your.app/api'
 //   app.data[0]: 'one'
 //   app.data[1]: 'two'
+//   app.greeting: 'hello bob'
 // }
 
 ```
@@ -83,4 +89,4 @@ const { raw } = await load(configuration);
 ## In progress
 - [x] Flattened configuration
 - [ ] Authentication
-- [ ] Variable expansion (`${SOME_ENV_VAR}`) using a provided context
+- [X] Variable expansion (`${SOME_ENV_VAR}`) using a provided context
