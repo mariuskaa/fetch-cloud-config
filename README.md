@@ -1,5 +1,7 @@
 # fetch-cloud-config
 
+![npm](https://img.shields.io/npm/v/fetch-cloud-config?label=npm)
+
 Fetch configs from spring-cloud-config servers.
 
 ## Installation 
@@ -66,17 +68,17 @@ console.log(properties)
 //   app: {
 //     name: 'sample-app',
 //     api-url: 'https://staging.your.app/api'
-//     data: ['one', 'two'],
 //     greeting: 'hello bob'
-//   }
+//   },
+//   data: ['one', 'two']
 // }
 console.log(flat)
 // {
 //   app.name: 'sample-app'
 //   app.api-url: 'https://staging.your.app/api'
-//   app.data[0]: 'one'
-//   app.data[1]: 'two'
 //   app.greeting: 'hello bob'
+//   data[0]: 'one'
+//   data[1]: 'two'
 // }
 
 ```
