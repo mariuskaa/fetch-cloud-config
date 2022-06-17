@@ -6,11 +6,16 @@
     "Spring Cloud",
     "typescript"
   ],
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "email": "marius.kaasboll@gmail.com",
     "name": "Marius Kaasbøll"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mariuskaa/fetch-cloud-config"
+  },
+  "license": "MIT",
   "packageManager": "yarn@3.2.1",
   "module": "dist/fetch-cloud-config.es.js",
   "main": "dist/fetch-cloud-config.umd.js",
