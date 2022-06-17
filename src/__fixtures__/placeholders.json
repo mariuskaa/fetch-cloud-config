@@ -1,0 +1,15 @@
+{
+  "name": "sample",
+  "profiles": ["dev"],
+  "label": null,
+  "version": "e8bec7709f3b7ae4c1dc26dcf46c0edea1c6fc9f",
+  "propertySources": [
+    {
+      "name": "root",
+      "source": {
+        "placeholder": "${ENV_PLACEHOLDER}",
+        "fallback": "${ENV_FALLBACK:fallback}"
+      }
+    }
+  ]
+}

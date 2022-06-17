@@ -1,6 +1,7 @@
 import { load, Configuration } from '../client';
 import data from '../__fixtures__/data.json';
 import nested from '../__fixtures__/nested.json';
+import placeholders from '../__fixtures__/placeholders.json';
 import fetchMock from 'jest-fetch-mock';
 
 beforeEach(() => {
@@ -92,5 +93,33 @@ test('Construct flat object', async () => {
     'app.mapdata.one': 'one',
     'app.mapdata.two': 'two',
     'app.mapdata.three': 'three',
+  });
+});
+
+describe('placeholder resolver', () => {
+  fetchMock.mockResponse(JSON.stringify(placeholders));
+  const config = { host: 'localhost', name: 'application', profiles: ['dev'] };
+  type Properties = { placeholder?: string; fallback: string };
+
+  it('should insert environment variable', async () => {
+    const properties = await load<Properties>({
+      ...config,
+      environment: { ENV_PLACEHOLDER: 'test' },
+    }).then((r) => r.properties);
+    expect(properties.placeholder).toBe('test');
+  });
+
+  it('should support missing variable fallback', async () => {
+    const properties = await load<Properties>(config).then((r) => r.properties);
+    expect(properties.fallback).toBe('fallback');
+    expect(properties.placeholder).toBe(undefined);
+  });
+
+  it('should populate placeholders with fallback', async () => {
+    const properties = await load<Properties>({
+      ...config,
+      environment: { ENV_FALLBACK: 'override' },
+    }).then((r) => r.properties);
+    expect(properties.fallback).toBe('override');
   });
 });
