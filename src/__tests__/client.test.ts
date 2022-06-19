@@ -2,35 +2,48 @@ import { load, Configuration } from '../client';
 import data from '../__fixtures__/data.json';
 import nested from '../__fixtures__/nested.json';
 import placeholders from '../__fixtures__/placeholders.json';
-import fetchMock from 'jest-fetch-mock';
+import { test, beforeEach, expect, it, describe, vi } from 'vitest';
 
 beforeEach(() => {
-  fetchMock.resetMocks();
+  vi.resetAllMocks();
 });
 
-test('Calls url with label, profile and app name', async () => {
-  fetchMock.mockResponse(JSON.stringify(data));
-  const baseConfig: Configuration = {
-    profiles: [],
-    host: 'http://localhost:8888',
-    name: 'appname',
-  };
-
-  await load({ ...baseConfig, profiles: ['dev'] });
-  expect(fetchMock).toHaveBeenCalledWith('http://localhost:8888/appname/dev');
-
-  await load({
-    ...baseConfig,
-    profiles: ['dev', 'extra'],
-    label: 'sample-label',
-  });
-  expect(fetchMock).toHaveBeenCalledWith(
-    'http://localhost:8888/appname/dev,extra/sample-label'
+function fetchMock(data: unknown) {
+  const mock = vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      json() {
+        return Promise.resolve(data);
+      },
+    })
   );
-});
+  global.fetch = mock;
+  return mock;
+}
+
+test.each([
+  ['http://localhost:8888/appname/dev', ['dev'], undefined],
+  [
+    'http://localhost:8888/appname/dev,extra/sample-label',
+    ['dev', 'extra'],
+    'sample-label',
+  ],
+])(
+  'Calls url with label, profile and appname',
+  async (url, profiles, label) => {
+    const mock = fetchMock(data);
+    const config: Configuration = {
+      label,
+      profiles,
+      host: 'http://localhost:8888',
+      name: 'appname',
+    };
+    await load(config);
+    expect(mock).toHaveBeenCalledWith(url);
+  }
+);
 
 test('Properties are overridden by specificity', async () => {
-  fetchMock.mockResponseOnce(JSON.stringify(data));
+  fetchMock(data);
   const config: Configuration = {
     host: '',
     profiles: ['dev'],
@@ -44,7 +57,7 @@ test('Properties are overridden by specificity', async () => {
 });
 
 test('Construct nested object', async () => {
-  fetchMock.mockResponseOnce(JSON.stringify(nested));
+  fetchMock(nested);
   const config: Configuration = { host: '', profiles: ['dev'] };
   type Result = {
     app: {
@@ -70,7 +83,7 @@ test('Construct nested object', async () => {
 });
 
 test('Construct flat object', async () => {
-  fetchMock.mockResponseOnce(JSON.stringify(nested));
+  fetchMock(nested);
   const config: Configuration = {
     host: '',
     profiles: ['dev'],
@@ -106,7 +119,7 @@ describe('placeholder resolver', () => {
   };
 
   it('should insert environment variable', async () => {
-    fetchMock.mockResponse(JSON.stringify(placeholders));
+    fetchMock(placeholders);
     const properties = await load<Properties>({
       ...config,
       environment: { ENV_PLACEHOLDER: 'test' },
@@ -115,14 +128,14 @@ describe('placeholder resolver', () => {
   });
 
   it('should support missing variable fallback', async () => {
-    fetchMock.mockResponse(JSON.stringify(placeholders));
+    fetchMock(placeholders);
     const properties = await load<Properties>(config).then((r) => r.properties);
     expect(properties.fallback).toBe('fallback');
     expect(properties.placeholder).toBe(undefined);
   });
 
   it('should populate placeholders with fallback', async () => {
-    fetchMock.mockResponse(JSON.stringify(placeholders));
+    fetchMock(placeholders);
     const properties = await load<Properties>({
       ...config,
       environment: { ENV_FALLBACK: 'override' },
@@ -131,7 +144,7 @@ describe('placeholder resolver', () => {
   });
 
   it('should resolve correct types', async () => {
-    fetchMock.mockResponse(JSON.stringify(placeholders));
+    fetchMock(placeholders);
     const environment = { ENV_TRUE: true, ENV_FALSE: false, ENV_NUMBER: 1 };
     const properties = await load<Properties>({ ...config, environment }).then(
       (r) => r.properties
